@@ -1,5 +1,6 @@
 fastapi
-uvicorn
+uvicorn[standard]
 twilio
 python-dotenv
 openai
+python-multipart     
