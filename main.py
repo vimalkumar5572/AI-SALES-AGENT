@@ -17,7 +17,7 @@ twilio_client = Client(
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 TWILIO_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 
-PUBLIC_BASE_URL = "https://ai-sales-agent-n84t.onrender.com""
+PUBLIC_BASE_URL = "https://ai-sales-agent-n84t.onrender.com"
 
 @app.get("/")
 def home():
