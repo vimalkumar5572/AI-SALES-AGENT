@@ -10,6 +10,7 @@ load_dotenv()
 
 app = FastAPI(title="AI Sales Agent")
 
+# Environment se values padho
 twilio_client = Client(
     os.getenv("TWILIO_ACCOUNT_SID"), 
     os.getenv("TWILIO_AUTH_TOKEN")
@@ -17,7 +18,8 @@ twilio_client = Client(
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 TWILIO_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 
-PUBLIC_BASE_URL = "https://ai-sales-agent-n84t.onrender.com"
+# ←←← Yeh line important hai (Render se URL padhega)
+PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL")
 
 @app.get("/")
 def home():
@@ -35,22 +37,16 @@ def make_outbound_call(to_phone: str):
     print(f"✅ Call initiated | SID: {call.sid}")
     return {"status": "Call initiated", "call_sid": call.sid}
 
-# ================== VOICE WEBHOOK ==================
 @app.post("/voice")
 async def voice_webhook():
-    print("🎤 /voice webhook HIT hua hai! Twilio ne request bheji")
-    
+    print("🎤 /voice webhook HIT hua!")
     resp = VoiceResponse()
-    resp.say("Namaste! Main AI Sales Agent hoon. Aapka naam kya hai?", 
-             voice="Polly.Aditi")
+    resp.say("Namaste! Main AI Sales Agent hoon. Aapka naam kya hai?", voice="Polly.Aditi")
     
     gather = Gather(input="speech", action="/gather", language="hi-IN", timeout=8)
     resp.append(gather)
-    
-    print("✅ TwiML response Twilio ko bheja gaya")
     return Response(content=str(resp), media_type="text/xml")
 
-# ================== AI CONVERSATION ==================
 @app.post("/gather")
 async def gather_speech(SpeechResult: str = Form(...)):
     user_input = SpeechResult.strip()
@@ -59,19 +55,16 @@ async def gather_speech(SpeechResult: str = Form(...)):
     completion = openai_client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": "You are a friendly Hindi-English sales agent."},
+            {"role": "system", "content": "You are a friendly Hindi-English sales agent. Keep answers short and polite."},
             {"role": "user", "content": user_input}
         ]
     )
     ai_reply = completion.choices[0].message.content
-    print(f"🤖 AI jawab: {ai_reply}")
-
+    
     resp = VoiceResponse()
     resp.say(ai_reply, voice="Polly.Aditi")
-    
     gather = Gather(input="speech", action="/gather", language="hi-IN", timeout=8)
     resp.append(gather)
-    
     return Response(content=str(resp), media_type="text/xml")
 
 
